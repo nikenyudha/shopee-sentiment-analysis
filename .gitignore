@@ -1,0 +1,11 @@
+# Mengabaikan folder environment virtual
+venv/
+.venv/
+env/
+
+# Mengabaikan folder model yang berat
+indobert-shopee-sentiment-model/
+
+# Mengabaikan cache python
+__pycache__/
+.ipynb_checkpoints/
