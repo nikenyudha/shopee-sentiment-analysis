@@ -1,66 +1,64 @@
 import streamlit as st
 import pandas as pd
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from wordcloud import WordCloud
-from wordcloud import STOPWORDS
 import matplotlib.pyplot as plt
-import torch
 import os
+import requests  # Penting: Digunakan untuk nembak ke API
 
 # --- 1. SETTING HALAMAN ---
 st.set_page_config(page_title="Shopee Sentiment Analysis", layout="wide")
 st.title("🛒 Shopee Sentiment & Topic Analysis")
 st.markdown("""
-Dashboard ini menganalisis review user aplikasi **Shopee** menggunakan model **IndoBERT** yang telah di-fine-tune. 
-Proyek ini membantu mengidentifikasi kepuasan pengguna dan area yang perlu diperbaiki.
+Dashboard ini menganalisis review user aplikasi **Shopee** menggunakan model **IndoBERT** melalui **FastAPI**. 
 """)
 
-# --- 2. LOAD MODEL & DATA ---
-@st.cache_resource
-def load_model():
-    model_path = "nikenlarash22/indobert-shopee-sentiment"
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForSequenceClassification.from_pretrained(model_path, num_labels=2)
-    return tokenizer, model
+# --- 2. FUNGSI PEMANGGIL API (GANTI LOAD MODEL) ---
+def get_prediction_from_api(text):
+    """Fungsi untuk mengirim teks ke FastAPI dan menerima hasil prediksi"""
+    url = "http://127.0.0.1:8000/predict" # Alamat FastAPI kamu
+    payload = {"text": text}
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": "API Error"}
+    except Exception as e:
+        return {"error": str(e)}
 
-tokenizer, model = load_model()
-
-# Menggunakan path yang aman agar tidak error di server
+# Load Data CSV Tetap Sama
 base_path = os.path.dirname(__file__)
 csv_path = os.path.join(base_path, 'data', 'shopee_reviews_cleaned.csv')
 df = pd.read_csv(csv_path)
-
-# Mapping Label (Hanya dilakukan sekali di sini)
 df['Sentiment_Label'] = df['label'].map({1: 'Positif 😊', 0: 'Negatif 😡'})
 
-# --- 3. SIDEBAR: UJI REAL-TIME ---
+# --- 3. SIDEBAR: UJI REAL-TIME (SEKARANG PAKE API) ---
 st.sidebar.header("🔍 Uji Model Real-Time")
-st.sidebar.info("Ketik review di bawah untuk melihat bagaimana model AI mengklasifikasikannya.")
+st.sidebar.info("Ketik review di bawah. Dashboard akan bertanya ke FastAPI untuk hasilnya.")
 user_input = st.sidebar.text_area("Masukkan teks review:")
 
 if user_input:
-    inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True, max_length=128)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        # Mendapatkan Probabilitas (Confidence Score)
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        prediction = torch.argmax(probs, dim=1).item()
-        conf_score = torch.max(probs).item() * 100
-    
-    label = "POSITIF 😊" if prediction == 1 else "NEGATIF 😡"
-    st.sidebar.markdown(f"### Hasil: **{label}**")
-    st.sidebar.progress(conf_score / 100)
-    st.sidebar.write(f"Tingkat Keyakinan Model: {conf_score:.2f}%")
+    # Kita panggil fungsi API, bukan hitung manual pake Torch lagi
+    with st.sidebar.status("Menghubungi API Model...", expanded=True) as status:
+        hasil = get_prediction_from_api(user_input)
+        
+        if "error" not in hasil:
+            label = hasil['sentiment'].upper()
+            conf_score = hasil['confidence'] * 100
+            
+            st.sidebar.markdown(f"### Hasil: **{label}**")
+            st.sidebar.progress(conf_score / 100)
+            st.sidebar.write(f"Tingkat Keyakinan Model: {conf_score:.2f}%")
+            status.update(label="Analisis Selesai!", state="complete")
+        else:
+            st.sidebar.error(f"Gagal konek ke API: {hasil['error']}")
 
-# --- 4. MAIN DASHBOARD: VISUALISASI ---
+# --- 4. MAIN DASHBOARD: VISUALISASI (BAGIAN INI TETAP SAMA) ---
 col1, col2 = st.columns([1, 2])
-
 with col1:
     st.subheader("📈 Ringkasan Sentimen")
     sentiment_count = df['Sentiment_Label'].value_counts()
     st.bar_chart(sentiment_count)
-    
-    # Tambahan: Statistik Sederhana
     total_data = len(df)
     pos_perc = (df['label'] == 1).sum() / total_data * 100
     st.metric("Total Review", total_data)
@@ -68,10 +66,7 @@ with col1:
 
 with col2:
     st.subheader("📄 Sampel Data Terbaru")
-    st.dataframe(
-        df[['content_cleaned', 'Sentiment_Label']].head(15),
-        use_container_width=True
-    )
+    st.dataframe(df[['content_cleaned', 'Sentiment_Label']].head(15), use_container_width=True)
 
 # --- 5. TOPIC MODELING INSIGHT (BERTopic) - OTOMATIS ---
 st.divider()
@@ -199,7 +194,7 @@ with col2:
 
 st.markdown(
     "<hr style='margin-top:50px;'>"
-    "<center style='color: gray;'>© 2026 Niken Larasati — Shopee Sentiment and Topic Analysis💗</center>",
+    "<center style='color: gray;'>© 2026 Niken Larasati — SHOPEE Sentiment and Topic Analysis💗</center>",
     unsafe_allow_html=True
 )
 
