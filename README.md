@@ -2,6 +2,10 @@
 
 This project aims to analyze the user experience of the Shopee app on the Google Play Store. Using Natural Language Processing (NLP) techniques, the project automatically classifies user sentiment and identifies key topics from thousands of reviews.
 
+## 🔗 Live Demo App
+**Streamlit:** [SHOPEE Live App Streamlit](https://shopee-sentiment-analysis.streamlit.app/)
+
+
 ## 🌟 Key Features
 - Real-time Prediction: Analyze review sentiment directly through an interactive dashboard.
 - Topic Modeling: Automatically identify key issues (e.g., ads, delivery) using BERTopic.
