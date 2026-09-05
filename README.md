@@ -25,7 +25,7 @@ An end-to-end NLP analytics platform designed to analyze user experience and rev
 ---
 
 ## 📊 Workflow & Pipeline
-1. **Scraping & Preprocessing**: Extracting raw review data, text cleaning, normalization, and stopword removal.
+1. **Scraping & Preprocessing**: Extracting 1000+ raw review data, text cleaning, normalization, and stopword removal.
 2. **Modeling & Topic Extraction**: Fine-tuning IndoBERT for binary classification (Positive/Negative) and clustering topics using BERTopic.
 3. **Backend Serving (FastAPI)**: Serving both sentiment prediction (`/predict`) and generative summarization (`/summarize`) endpoints asynchronously.
 4. **Interactive Visualization (Streamlit)**: Fetching backend API results to display real-time predictions, sentiment distributions, topic breakdowns, and Gemini AI insights.
@@ -33,10 +33,10 @@ An end-to-end NLP analytics platform designed to analyze user experience and rev
 ---
 
 ## 📈 Visualization
-This project provides various visualizations, such as:
-Sentiment Distribution Bar Chart.
-WordCloud to see keywords that frequently appear in positive vs. negative reviews.
-Sentiment per Topic Analysis to see which topics receive the most complaints.
+**This project provides various visualizations, such as**:
+- Sentiment Distribution Bar Chart.
+- WordCloud to see keywords that frequently appear in positive vs. negative reviews.
+- Sentiment per Topic Analysis to see which topics receive the most complaints.
 ---
 
 ## 📡 API Endpoints Summary
@@ -59,5 +59,6 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
+```
 
-Created by Niken Larasati
+Created by Niken Larasati W
